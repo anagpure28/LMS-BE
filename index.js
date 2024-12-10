@@ -4,6 +4,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import connectDB from './database/db.js';
 import userRoute from './routes/user.route.js';
+import courseRoute from './routes/course.route.js';
 
 dotenv.config(); // Load environment variables
 
@@ -23,8 +24,9 @@ app.use(cors({
     credentials: true
 }));
 
-// Middleware to handle user routes
+// Middleware to handle user and course routes
 app.use('/api/v1/user', userRoute);
+app.use('/api/v1/course', courseRoute);
 
 // Health check endpoint
 app.get('/health-check', (req, res) => {
