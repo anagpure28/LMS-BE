@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { User } from "./user.model.js";
 
 const courseSchema = new mongoose.Schema({
     courseTitle: {
@@ -6,12 +7,10 @@ const courseSchema = new mongoose.Schema({
         required: true
     },
     subTitle: {
-        type: String,
-        required: true
+        type: String
     },
     description: {
-        type: String,
-        required: true
+        type: String
     },
     category: {
         type: String,
@@ -43,6 +42,9 @@ const courseSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "User"
     },
+    creatorName: {
+        type: String, // Field to store the creator's name
+    },
     isPublished: {
         type: Boolean,
         default: false
@@ -52,4 +54,24 @@ const courseSchema = new mongoose.Schema({
     versionKey: false
 })
 
-export const Course = mongoose.model("Course" , courseSchema);
+// export const Course = mongoose.model("Course" , courseSchema);
+
+// Pre-save hook to populate creatorName from the User collection
+courseSchema.pre("save", async function (next) {
+    try {
+      // Only populate creatorName if it is not already set
+      if (!this.creatorName && this.creator) {
+        const user = await User.findById(this.creator);
+        if (user) {
+          this.creatorName = user.name; // Assuming the User model has a `name` field
+        } else {
+          return next(new Error("Creator not found"));
+        }
+      }
+      next();
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  export const Course = mongoose.model("Course", courseSchema);

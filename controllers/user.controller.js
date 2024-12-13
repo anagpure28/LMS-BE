@@ -2,6 +2,13 @@ import { User } from "../models/user.model.js";
 import bcrypt from "bcrypt";
 import { generateToken } from "../utils/generateToken.js";
 import { deleteMediaFromCloudinary, uploadMedia } from "../utils/cloudinary.js";
+import path from "path";
+import { fileURLToPath } from "url";
+import fs from "fs/promises";
+
+// Define __dirname for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export const register = async (req, res) => {
   try {
@@ -153,6 +160,14 @@ export const updateProfile = async (req, res) => {
       // Upload the new photo to Cloudinary
       const cloudResponse = await uploadMedia(profilePhoto.path);
       updatedData.photoUrl = cloudResponse.secure_url;
+
+      // Construct the file path using the filename and delete it from the 'uploads' folder
+      const filePath = path.join(
+        __dirname,
+        "../uploads",
+        profilePhoto.filename
+      );
+      await fs.unlink(filePath);
     } else {
       updatedData.photoUrl = user.photoUrl; // Retain the existing profile photo
     }
@@ -169,6 +184,21 @@ export const updateProfile = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
+
+    // Cleanup uploaded file on error
+    if (req.file) {
+      const fallbackFilePath = path.join(
+        __dirname,
+        "../uploads",
+        req.file.filename
+      );
+      await fs
+        .unlink(fallbackFilePath)
+        .catch((unlinkError) =>
+          console.error("Failed to delete file:", unlinkError)
+        );
+    }
+
     return res.status(500).json({
       success: false,
       message: "Failed to update user profile",
