@@ -5,6 +5,13 @@ import cookieParser from 'cookie-parser';
 import connectDB from './database/db.js';
 import userRoute from './routes/user.route.js';
 import courseRoute from './routes/course.route.js';
+import mediaRoute from './routes/media.route.js';
+
+// The MaxListenersExceededWarning occurs when more than 10 event listeners are attached to an EventEmitter, which is the default maximum limit. This is a safety mechanism to warn about potential memory leaks. In your case, it seems related to the exit event listeners on a Bus object.
+import { EventEmitter } from 'events';
+
+EventEmitter.defaultMaxListeners = 20; // Increase the limit as needed
+
 
 dotenv.config(); // Load environment variables
 
@@ -25,6 +32,7 @@ app.use(cors({
 }));
 
 // Middleware to handle user and course routes
+app.use('/api/v1/media', mediaRoute);
 app.use('/api/v1/user', userRoute);
 app.use('/api/v1/course', courseRoute);
 
